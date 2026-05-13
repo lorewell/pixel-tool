@@ -5,441 +5,715 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PixelKit — 像素工具箱</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0a0f;
-      --bg2: #12121c;
-      --surface: #1a1a2e;
-      --border: #2a2a4a;
+      --bg: #07080f;
+      --bg2: #0d0e1a;
+      --surface: #111222;
+      --surface2: #161728;
+      --border: #1e2040;
+      --border2: #252650;
       --accent: #00f5c4;
       --accent2: #ff3c6e;
       --accent3: #ffd700;
-      --text: #e8e8f0;
-      --muted: #6b6b8e;
-      --pixel: 4px;
+      --accent4: #a78bfa;
+      --text: #dde2f0;
+      --text2: #a8adc8;
+      --muted: #525570;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { scroll-behavior: smooth; }
+
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 16px;
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 15px;
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* Scanline overlay */
+    /* ── Scanlines ── */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: repeating-linear-gradient(
         0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
+        transparent, transparent 3px,
+        rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
       );
       pointer-events: none;
-      z-index: 1000;
+      z-index: 9000;
     }
 
-    /* Grid background */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
+    /* ── Ambient gradient ── */
+    .bg-glow {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 0%, rgba(0,245,196,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 35% at 90% 100%, rgba(167,139,250,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 10%, rgba(255,60,110,0.04) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ——— HEADER ——— */
+    /* ── Grid dots ── */
+    .bg-dots {
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ════════════ HEADER ════════════ */
     header {
       position: relative;
-      z-index: 10;
-      padding: 48px 40px 32px;
+      z-index: 100;
+      padding: 0 48px;
+      height: 72px;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: space-between;
-      border-bottom: 2px solid var(--border);
+      border-bottom: 1px solid var(--border2);
+      background: rgba(7,8,15,0.8);
+      backdrop-filter: blur(12px);
     }
 
-    .logo-block {
+    .logo-group {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
     }
 
-    .logo-pixel {
+    .logo-icon {
+      width: 36px; height: 36px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+
+    .logo-px {
+      border-radius: 1px;
+      animation: logo-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logo-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .logo-text {
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(18px, 3vw, 28px);
+      font-size: 15px;
       color: var(--accent);
-      text-shadow: 0 0 20px rgba(0,245,196,0.6), 4px 4px 0 rgba(0,245,196,0.2);
-      letter-spacing: 2px;
-      animation: flicker 6s infinite;
+      text-shadow: 0 0 24px rgba(0,245,196,0.5);
+      letter-spacing: 1px;
     }
 
-    @keyframes flicker {
-      0%, 96%, 100% { opacity: 1; }
-      97% { opacity: 0.85; }
-      98% { opacity: 1; }
-      99% { opacity: 0.9; }
+    .logo-sep {
+      width: 1px; height: 24px;
+      background: var(--border2);
     }
 
     .logo-sub {
-      font-size: 14px;
-      font-weight: 600;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
       color: var(--muted);
-      letter-spacing: 4px;
-      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    .header-badge {
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .stat-pill {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
+      padding: 6px 14px;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+    }
+
+    .stat-pill .val {
       color: var(--accent3);
-      border: 2px solid var(--accent3);
-      padding: 8px 14px;
-      image-rendering: pixelated;
-      position: relative;
+      font-weight: 700;
     }
-    .header-badge::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border: 1px solid rgba(255,215,0,0.2);
+
+    .stat-pill .lbl {
+      color: var(--muted);
     }
-    .dot {
-      width: 8px; height: 8px;
-      background: var(--accent3);
+
+    .online-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--accent);
+      padding: 7px 13px;
+      border: 1px solid rgba(0,245,196,0.3);
+      background: rgba(0,245,196,0.05);
+    }
+
+    .blink-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
       animation: blink 1.2s step-end infinite;
     }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-    /* ——— MAIN ——— */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ════════════ HERO ════════════ */
+    .hero {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 48px 0;
+    }
+
+    .hero-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(20px, 3.5vw, 36px);
+      color: var(--text);
+      line-height: 1.8;
+      letter-spacing: 0;
+    }
+
+    .hero-title span {
+      color: var(--accent);
+      text-shadow: 0 0 32px rgba(0,245,196,0.4);
+    }
+
+    .hero-sub {
+      margin-top: 16px;
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-shrink: 0;
+    }
+
+    .hero-stat {
+      text-align: right;
+    }
+
+    .hero-stat-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 28px;
+      color: var(--accent3);
+      display: block;
+      text-shadow: 0 0 20px rgba(255,215,0,0.3);
+    }
+
+    .hero-stat-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ════════════ MAIN ════════════ */
     main {
       position: relative;
       z-index: 10;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 64px 40px 80px;
+      padding: 56px 48px 80px;
+    }
+
+    /* ── Category ── */
+    .category-block {
+      margin-bottom: 64px;
     }
 
     .section-header {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 48px;
+      gap: 0;
+      margin-bottom: 28px;
     }
 
-    .section-label {
+    .section-num {
       font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
-      color: var(--accent2);
+      font-size: 8px;
+      color: var(--muted);
+      writing-mode: vertical-rl;
       letter-spacing: 2px;
-      writing-mode: horizontal-tb;
+      margin-right: 16px;
+      padding-right: 16px;
+      border-right: 1px solid var(--border2);
+      height: 36px;
+      display: flex;
+      align-items: center;
     }
 
     .section-title {
-      font-size: 36px;
+      font-family: 'Space Mono', monospace;
+      font-size: 22px;
       font-weight: 700;
-      letter-spacing: 2px;
       color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .section-count {
+      margin-left: 12px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--accent2);
+      padding: 3px 8px;
+      border: 1px solid rgba(255,60,110,0.3);
+      background: rgba(255,60,110,0.07);
+      vertical-align: middle;
     }
 
     .section-line {
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
+      background: linear-gradient(90deg, var(--border2) 0%, transparent 100%);
+      margin-left: 20px;
     }
 
-    /* ——— TOOLS GRID ——— */
+    /* ── Cards Grid ── */
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
     }
 
     .tool-card {
       background: var(--surface);
-      border: 2px solid var(--border);
-      padding: 20px 20px;
+      padding: 24px 22px 20px;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: border-color 0.15s, transform 0.15s;
+      transition: background 0.2s;
       text-decoration: none;
-      display: block;
-      outline: none;
+      display: flex;
+      flex-direction: column;
+      color: var(--text);
     }
 
+    /* left accent bar */
     .tool-card::before {
       content: '';
       position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--card-accent, var(--accent)), transparent 60%);
-      opacity: 0;
-      transition: opacity 0.25s;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--card-accent, var(--accent));
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
     }
 
-    .tool-card:hover {
-      border-color: var(--card-accent, var(--accent));
-      transform: translate(-2px, -2px);
-      z-index: 2;
-    }
-    .tool-card:hover::before { opacity: 0.06; }
-
-    /* corner pixel decoration */
+    /* top glow on hover */
     .tool-card::after {
       content: '';
       position: absolute;
-      bottom: 8px; right: 8px;
-      width: 6px; height: 6px;
-      background: var(--card-accent, var(--accent));
+      inset: 0;
+      background: linear-gradient(160deg, var(--card-accent, var(--accent)), transparent 55%);
       opacity: 0;
-      transition: opacity 0.25s;
+      transition: opacity 0.3s;
     }
-    .tool-card:hover::after { opacity: 1; }
+
+    .tool-card:hover {
+      background: var(--surface2);
+    }
+
+    .tool-card:hover::before { transform: scaleY(1); }
+    .tool-card:hover::after  { opacity: 0.04; }
+
+    .card-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
 
     .tool-icon {
-      font-size: 26px;
-      margin-bottom: 12px;
+      font-size: 28px;
+      margin-bottom: 14px;
       display: block;
-      image-rendering: pixelated;
-      filter: drop-shadow(0 0 8px var(--card-accent, var(--accent)));
+      filter: drop-shadow(0 0 6px var(--card-accent, var(--accent)));
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    .tool-card:hover .tool-icon {
+      transform: scale(1.1) translateY(-2px);
+      filter: drop-shadow(0 0 14px var(--card-accent, var(--accent)));
     }
 
     .tool-tag {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
       color: var(--card-accent, var(--accent));
-      letter-spacing: 1px;
-      margin-bottom: 10px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
       display: block;
+      opacity: 0.8;
     }
 
     .tool-name {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 6px;
-      letter-spacing: 1px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
     }
 
     .tool-desc {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.6;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
       font-weight: 400;
+      flex: 1;
     }
 
     .tool-status {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-top: 14px;
+      margin-top: 16px;
       font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
-      padding: 5px 10px;
+      font-size: 6px;
+      padding: 4px 8px;
       border: 1px solid currentColor;
+      align-self: flex-start;
     }
 
     .status-dot {
       width: 5px; height: 5px;
+      border-radius: 1px;
     }
 
     .status-soon {
       color: var(--muted);
     }
-
-    .status-soon .status-dot {
-      background: var(--muted);
-    }
+    .status-soon .status-dot { background: var(--muted); }
 
     .status-ready {
       color: var(--accent);
     }
-
     .status-ready .status-dot {
       background: var(--accent);
       animation: blink 1s step-end infinite;
     }
 
-    /* ——— CATEGORIES ——— */
-    .category-block {
-      margin-bottom: 72px;
+    /* ── Arrow on ready cards ── */
+    .card-arrow {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      color: var(--card-accent, var(--accent));
+      opacity: 0;
+      transform: translate(-4px, 4px);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 2;
+    }
+    .tool-card:hover .card-arrow {
+      opacity: 1;
+      transform: translate(0, 0);
     }
 
-    /* ——— FOOTER ——— */
+    /* ════════════ FOOTER ════════════ */
     footer {
       position: relative;
       z-index: 10;
-      border-top: 2px solid var(--border);
-      padding: 24px 40px;
+      border-top: 1px solid var(--border2);
+      padding: 20px 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: rgba(7,8,15,0.6);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
 
     .footer-text {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
       color: var(--muted);
       letter-spacing: 1px;
     }
 
+    .footer-divider {
+      width: 1px; height: 14px;
+      background: var(--border2);
+    }
+
     .footer-pixels {
       display: flex;
-      gap: 4px;
+      gap: 3px;
+      align-items: center;
     }
 
     .fp {
-      width: 8px; height: 8px;
+      width: 7px; height: 7px;
+      border-radius: 1px;
     }
 
-    /* ——— PIXEL ART DECORATION ——— */
-    .pixel-art-hero {
-      display: flex;
-      gap: 2px;
-      flex-wrap: wrap;
-      width: 48px;
-    }
-
-    .px {
-      width: 6px; height: 6px;
-      display: inline-block;
-    }
-
-    /* ——— HOVER MODAL placeholder ——— */
-    .coming-soon-overlay {
+    /* ════════════ MODAL ════════════ */
+    .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 999;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
       align-items: center;
       justify-content: center;
     }
-    .coming-soon-overlay.open {
-      display: flex;
-    }
-    .coming-soon-box {
-      background: var(--surface);
-      border: 2px solid var(--accent);
-      padding: 48px;
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      padding: 48px 40px;
       text-align: center;
       position: relative;
-      max-width: 400px;
+      max-width: 380px;
+      width: 90%;
+      animation: modal-in 0.2s ease-out;
     }
-    .coming-soon-box::before {
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-box::before {
       content: '';
       position: absolute;
-      inset: -6px;
-      border: 1px solid rgba(0,245,196,0.2);
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
     }
-    .coming-soon-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 14px;
-      color: var(--accent);
+
+    .modal-icon {
+      font-size: 36px;
       margin-bottom: 20px;
+      display: block;
+    }
+
+    .modal-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 16px;
       line-height: 1.8;
     }
-    .coming-soon-msg {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 28px;
+
+    .modal-badge {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--accent3);
+      border: 1px solid rgba(255,215,0,0.4);
+      background: rgba(255,215,0,0.07);
+      padding: 4px 10px;
+      margin-bottom: 20px;
     }
-    .cs-close {
+
+    .modal-msg {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .modal-close {
       font-family: 'Press Start 2P', monospace;
       font-size: 8px;
       background: none;
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      padding: 10px 20px;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      padding: 10px 24px;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: border-color 0.15s, color 0.15s;
+      letter-spacing: 1px;
     }
-    .cs-close:hover {
-      background: var(--accent);
-      color: var(--bg);
+    .modal-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
-    @media (max-width: 640px) {
-      header, main, footer { padding-left: 20px; padding-right: 20px; }
-      main { padding-top: 40px; }
-      .section-title { font-size: 26px; }
+    /* ════════════ ANIMATIONS ════════════ */
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tool-card {
+      animation: card-in 0.4s ease-out both;
+    }
+
+    /* ════════════ RESPONSIVE ════════════ */
+    @media (max-width: 768px) {
+      header { padding: 0 20px; }
+      .logo-sep, .logo-sub, .stat-pill { display: none; }
+      .hero, main { padding-left: 20px; padding-right: 20px; }
+      .hero-inner { flex-direction: column; gap: 28px; align-items: flex-start; }
+      .hero-stats { gap: 20px; }
+      .hero-stat { text-align: left; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+      footer { padding: 16px 20px; flex-direction: column; gap: 12px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
       .tools-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
+<div class="bg-glow"></div>
+<div class="bg-dots"></div>
+
+<!-- ── Header ── -->
 <header>
-  <div class="logo-block">
-    <span class="logo-pixel">PIXEL KIT</span>
-    <span class="logo-sub">像素图像工具箱 · v0.1.0</span>
+  <div class="logo-group">
+    <!-- pixel icon -->
+    <div class="logo-icon">
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.2s"></div>
+      <div class="logo-px" style="background:#07080f;animation-delay:0s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.4s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.6s"></div>
+      <div class="logo-px" style="background:#07080f;animation-delay:0s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.3s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.1s"></div>
+      <div class="logo-px" style="background:#07080f;animation-delay:0s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.5s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.2s"></div>
+      <div class="logo-px" style="background:#07080f;animation-delay:0s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.4s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.7s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.1s"></div>
+      <div class="logo-px" style="background:#00f5c4;animation-delay:0.3s"></div>
+    </div>
+    <span class="logo-text">PIXEL KIT</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">像素图像工具箱</span>
   </div>
-  <div class="header-badge">
-    <div class="dot"></div>
-    ONLINE
+  <div class="header-right">
+    <div class="stat-pill">
+      <span class="val">2</span>
+      <span class="lbl">TOOLS READY</span>
+    </div>
+    <div class="online-badge">
+      <div class="blink-dot"></div>
+      ONLINE
+    </div>
   </div>
 </header>
 
-<!-- Main -->
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1 class="hero-title">PIXEL<br><span>TOOLKIT</span></h1>
+      <p class="hero-sub">专为像素艺术创作者设计的浏览器工具集，无需安装，所有处理在本地完成，保护你的素材隐私。</p>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num">6</span>
+        <span class="hero-stat-label">TOTAL TOOLS</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">2</span>
+        <span class="hero-stat-label">AVAILABLE</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main ── -->
 <main>
 
   <!-- 图像处理 -->
   <div class="category-block">
     <div class="section-header">
-      <span class="section-label">01 / IMAGE</span>
-      <h2 class="section-title">图像处理</h2>
+      <span class="section-num">01</span>
+      <h2 class="section-title">图像处理<span class="section-count">4</span></h2>
       <div class="section-line"></div>
     </div>
 
     <div class="tools-grid">
 
-      <a class="tool-card" style="--card-accent: #00f5c4" href="tool/cutout.html">
-        <span class="tool-icon">✂️</span>
-        <span class="tool-tag">IMG · CUTOUT</span>
-        <div class="tool-name">像素图抠图</div>
-        <div class="tool-desc">智能识别像素图轮廓，精准去除背景色，保留完整像素细节，输出透明通道图像。</div>
-        <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+      <a class="tool-card" style="--card-accent:#00f5c4;animation-delay:0.05s" href="tool/cutout.html">
+        <div class="card-content">
+          <span class="tool-icon">✂️</span>
+          <span class="tool-tag">IMG · CUTOUT</span>
+          <div class="tool-name">像素图抠图</div>
+          <div class="tool-desc">智能识别像素图轮廓，精准去除背景色，保留完整像素细节，输出透明通道图像。</div>
+          <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+        </div>
+        <span class="card-arrow">↗</span>
       </a>
 
-      <div class="tool-card" style="--card-accent: #ff3c6e" onclick="openModal('像素图转换', '将普通照片或图片转换为像素风格，可自定义像素尺寸、调色板与抖动算法。')">
-        <span class="tool-icon">🎨</span>
-        <span class="tool-tag">IMG · CONVERT</span>
-        <div class="tool-name">像素图转换</div>
-        <div class="tool-desc">将任意图片像素化，支持自定义分辨率、限定调色板颜色数及多种抖动算法。</div>
-        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      <div class="tool-card" style="--card-accent:#ff3c6e;animation-delay:0.1s" onclick="openModal('像素图转换','🎨','将普通照片或图片转换为像素风格，可自定义像素尺寸、调色板与抖动算法。')">
+        <div class="card-content">
+          <span class="tool-icon">🎨</span>
+          <span class="tool-tag">IMG · CONVERT</span>
+          <div class="tool-name">像素图转换</div>
+          <div class="tool-desc">将任意图片像素化，支持自定义分辨率、限定调色板颜色数及多种抖动算法。</div>
+          <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+        </div>
       </div>
 
-      <div class="tool-card" style="--card-accent: #ffd700" onclick="openModal('调色板提取', '从图片中提取主色调，生成像素艺术风格调色板，支持导出为 GPL / ASE 格式。')">
-        <span class="tool-icon">🎡</span>
-        <span class="tool-tag">IMG · PALETTE</span>
-        <div class="tool-name">调色板提取</div>
-        <div class="tool-desc">自动从图片中聚类提取主色，生成专属调色板，快速用于像素艺术创作。</div>
-        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      <div class="tool-card" style="--card-accent:#ffd700;animation-delay:0.15s" onclick="openModal('调色板提取','🎡','从图片中提取主色调，生成像素艺术风格调色板，支持导出为 GPL / ASE 格式。')">
+        <div class="card-content">
+          <span class="tool-icon">🎡</span>
+          <span class="tool-tag">IMG · PALETTE</span>
+          <div class="tool-name">调色板提取</div>
+          <div class="tool-desc">自动从图片中聚类提取主色，生成专属调色板，快速用于像素艺术创作。</div>
+          <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+        </div>
       </div>
 
-      <div class="tool-card" style="--card-accent: #a78bfa" onclick="openModal('精灵图切割', '上传像素精灵图（Sprite Sheet），自动检测帧边界并切割导出单帧图像。')">
-        <span class="tool-icon">🃏</span>
-        <span class="tool-tag">IMG · SPRITE</span>
-        <div class="tool-name">精灵图切割</div>
-        <div class="tool-desc">自动检测精灵图中的帧间距，批量切割并导出独立帧，支持自定义行列数。</div>
-        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      <div class="tool-card" style="--card-accent:#a78bfa;animation-delay:0.2s" onclick="openModal('精灵图切割','🃏','上传像素精灵图（Sprite Sheet），自动检测帧边界并切割导出单帧图像。')">
+        <div class="card-content">
+          <span class="tool-icon">🃏</span>
+          <span class="tool-tag">IMG · SPRITE</span>
+          <div class="tool-name">精灵图切割</div>
+          <div class="tool-desc">自动检测精灵图中的帧间距，批量切割并导出独立帧，支持自定义行列数。</div>
+          <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+        </div>
       </div>
 
     </div>
@@ -448,27 +722,32 @@
   <!-- 格式工具 -->
   <div class="category-block">
     <div class="section-header">
-      <span class="section-label">02 / FORMAT</span>
-      <h2 class="section-title">格式工具</h2>
+      <span class="section-num">02</span>
+      <h2 class="section-title">格式工具<span class="section-count">2</span></h2>
       <div class="section-line"></div>
     </div>
 
     <div class="tools-grid">
 
-      <div class="tool-card" style="--card-accent: #38bdf8" onclick="openModal('图片格式转换', '在 PNG / WebP / GIF / BMP 等格式之间互转，支持批量处理与压缩质量调整。')">
-        <span class="tool-icon">🔄</span>
-        <span class="tool-tag">FMT · CONVERT</span>
-        <div class="tool-name">图片格式转换</div>
-        <div class="tool-desc">PNG / WebP / GIF / BMP 格式互转，无损或有损压缩，支持批量拖拽处理。</div>
-        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      <div class="tool-card" style="--card-accent:#38bdf8;animation-delay:0.05s" onclick="openModal('图片格式转换','🔄','在 PNG / WebP / GIF / BMP 等格式之间互转，支持批量处理与压缩质量调整。')">
+        <div class="card-content">
+          <span class="tool-icon">🔄</span>
+          <span class="tool-tag">FMT · CONVERT</span>
+          <div class="tool-name">图片格式转换</div>
+          <div class="tool-desc">PNG / WebP / GIF / BMP 格式互转，无损或有损压缩，支持批量拖拽处理。</div>
+          <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+        </div>
       </div>
 
-      <a class="tool-card" style="--card-accent: #fb923c" href="tool/resizer.html">
-        <span class="tool-icon">🔍</span>
-        <span class="tool-tag">FMT · SCALE</span>
-        <div class="tool-name">像素图缩放</div>
-        <div class="tool-desc">专为像素图设计的无损放大，支持 Nearest-Neighbor、xBR、HQ2x 等高质量算法。</div>
-        <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+      <a class="tool-card" style="--card-accent:#fb923c;animation-delay:0.1s" href="tool/resizer.html">
+        <div class="card-content">
+          <span class="tool-icon">🔍</span>
+          <span class="tool-tag">FMT · SCALE</span>
+          <div class="tool-name">像素图缩放</div>
+          <div class="tool-desc">专为像素图设计的无损放大，支持 Nearest-Neighbor、xBR、HQ2x 等高质量算法。</div>
+          <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+        </div>
+        <span class="card-arrow">↗</span>
       </a>
 
     </div>
@@ -476,9 +755,13 @@
 
 </main>
 
-<!-- Footer -->
+<!-- ── Footer ── -->
 <footer>
-  <span class="footer-text">© 2026 PIXEL KIT · ALL TOOLS RUNNING IN BROWSER</span>
+  <div class="footer-left">
+    <span class="footer-text">© 2026 PIXEL KIT</span>
+    <div class="footer-divider"></div>
+    <span class="footer-text">ALL PROCESSING IN BROWSER · NO UPLOAD</span>
+  </div>
   <div class="footer-pixels">
     <div class="fp" style="background:#00f5c4"></div>
     <div class="fp" style="background:#ff3c6e"></div>
@@ -489,28 +772,35 @@
   </div>
 </footer>
 
-<!-- Coming Soon Modal -->
-<div class="coming-soon-overlay" id="modal" onclick="closeModal(event)">
-  <div class="coming-soon-box">
-    <div class="coming-soon-title" id="modal-title">COMING SOON</div>
-    <div class="coming-soon-msg" id="modal-msg">该工具正在开发中，敬请期待。</div>
-    <button class="cs-close" onclick="document.getElementById('modal').classList.remove('open')">[ 关闭 ]</button>
+<!-- ── Modal ── -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <span class="modal-icon" id="modal-icon">🛠️</span>
+    <div class="modal-title" id="modal-title">TOOL NAME</div>
+    <div class="modal-badge">COMING SOON</div>
+    <div class="modal-msg" id="modal-msg">该工具正在开发中，敬请期待。</div>
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">关闭</button>
   </div>
 </div>
 
 <script>
-  function openModal(name, desc) {
+  function openModal(name, icon, desc) {
     document.getElementById('modal-title').textContent = name;
+    document.getElementById('modal-icon').textContent = icon;
     document.getElementById('modal-msg').textContent = desc;
     document.getElementById('modal').classList.add('open');
   }
   function closeModal(e) {
-    if (e.target === document.getElementById('modal')) {
+    if (e.target === document.getElementById('modal'))
       document.getElementById('modal').classList.remove('open');
-    }
   }
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.getElementById('modal').classList.remove('open');
+  });
+
+  // stagger card animations
+  document.querySelectorAll('.tool-card').forEach((el, i) => {
+    el.style.animationDelay = (i * 0.06) + 's';
   });
 </script>
 </body>
