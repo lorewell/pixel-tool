@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>像素缩放器 - 保持锐利边缘</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #eee; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #252525; padding: 20px; border-radius: 12px; width: 100%; max-width: 600px; }
+        .preview-box { 
+            margin: 20px 0; border: 2px solid #444; background: #111;
+            display: flex; align-items: center; justify-content: center; min-height: 200px;
+        }
+        canvas { image-rendering: pixelated; border: 1px solid #555; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-up { background: #3498db; color: white; }
+        .btn-down { background: #2ecc71; color: white; grid-column: span 2; }
+        input, select { background: #333; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📐 像素高清缩放</h2>
+    <input type="file" id="upload" accept="image/*">
+    
+    <div class="controls">
+        <label>放大倍数 (整数):</label>
+        <select id="scale">
+            <option value="2">2倍 (200%)</option>
+            <option value="4">4倍 (400%)</option>
+            <option value="8" selected>8倍 (800%)</option>
+            <option value="16">16倍 (1600%)</option>
+        </select>
+    </div>
+
+    <div class="preview-box">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <button id="download" class="btn btn-down">保存放大后的图片</button>
+</div>
+
+<script>
+    const upload = document.getElementById('upload');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const scaleSelect = document.getElementById('scale');
+    let sourceImg = null;
+
+    upload.addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            sourceImg = new Image();
+            sourceImg.onload = redraw;
+            sourceImg.src = f.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    scaleSelect.addEventListener('change', redraw);
+
+    function redraw() {
+        if (!sourceImg) return;
+        
+        const factor = parseInt(scaleSelect.value);
+        canvas.width = sourceImg.width * factor;
+        canvas.height = sourceImg.height * factor;
+
+        // 关键步骤：禁用图像平滑
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+
+        // 绘制放大后的图像
+        ctx.drawImage(sourceImg, 0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('download').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'pixel-upscaled.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+</script>
+</body>
+</html>

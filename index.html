@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelKit — 像素工具箱</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #12121c;
+      --surface: #1a1a2e;
+      --border: #2a2a4a;
+      --accent: #00f5c4;
+      --accent2: #ff3c6e;
+      --accent3: #ffd700;
+      --text: #e8e8f0;
+      --muted: #6b6b8e;
+      --pixel: 4px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Grid background */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ——— HEADER ——— */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 48px 40px 32px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .logo-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .logo-pixel {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(18px, 3vw, 28px);
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(0,245,196,0.6), 4px 4px 0 rgba(0,245,196,0.2);
+      letter-spacing: 2px;
+      animation: flicker 6s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 96%, 100% { opacity: 1; }
+      97% { opacity: 0.85; }
+      98% { opacity: 1; }
+      99% { opacity: 0.9; }
+    }
+
+    .logo-sub {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--accent3);
+      border: 2px solid var(--accent3);
+      padding: 8px 14px;
+      image-rendering: pixelated;
+      position: relative;
+    }
+    .header-badge::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      background: var(--accent3);
+      animation: blink 1.2s step-end infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ——— MAIN ——— */
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 40px 80px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .section-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--accent2);
+      letter-spacing: 2px;
+      writing-mode: horizontal-tb;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    /* ——— TOOLS GRID ——— */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .tool-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      padding: 20px 20px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+      text-decoration: none;
+      display: block;
+      outline: none;
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--card-accent, var(--accent)), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .tool-card:hover {
+      border-color: var(--card-accent, var(--accent));
+      transform: translate(-2px, -2px);
+      z-index: 2;
+    }
+    .tool-card:hover::before { opacity: 0.06; }
+
+    /* corner pixel decoration */
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      bottom: 8px; right: 8px;
+      width: 6px; height: 6px;
+      background: var(--card-accent, var(--accent));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .tool-card:hover::after { opacity: 1; }
+
+    .tool-icon {
+      font-size: 26px;
+      margin-bottom: 12px;
+      display: block;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 0 8px var(--card-accent, var(--accent)));
+    }
+
+    .tool-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--card-accent, var(--accent));
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .tool-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .tool-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .tool-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 5px 10px;
+      border: 1px solid currentColor;
+    }
+
+    .status-dot {
+      width: 5px; height: 5px;
+    }
+
+    .status-soon {
+      color: var(--muted);
+    }
+
+    .status-soon .status-dot {
+      background: var(--muted);
+    }
+
+    .status-ready {
+      color: var(--accent);
+    }
+
+    .status-ready .status-dot {
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ——— CATEGORIES ——— */
+    .category-block {
+      margin-bottom: 72px;
+    }
+
+    /* ——— FOOTER ——— */
+    footer {
+      position: relative;
+      z-index: 10;
+      border-top: 2px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-text {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .footer-pixels {
+      display: flex;
+      gap: 4px;
+    }
+
+    .fp {
+      width: 8px; height: 8px;
+    }
+
+    /* ——— PIXEL ART DECORATION ——— */
+    .pixel-art-hero {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      width: 48px;
+    }
+
+    .px {
+      width: 6px; height: 6px;
+      display: inline-block;
+    }
+
+    /* ——— HOVER MODAL placeholder ——— */
+    .coming-soon-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .coming-soon-overlay.open {
+      display: flex;
+    }
+    .coming-soon-box {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      max-width: 400px;
+    }
+    .coming-soon-box::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border: 1px solid rgba(0,245,196,0.2);
+    }
+    .coming-soon-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+    .coming-soon-msg {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .cs-close {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      background: none;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cs-close:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    @media (max-width: 640px) {
+      header, main, footer { padding-left: 20px; padding-right: 20px; }
+      main { padding-top: 40px; }
+      .section-title { font-size: 26px; }
+      .tools-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo-block">
+    <span class="logo-pixel">PIXEL KIT</span>
+    <span class="logo-sub">像素图像工具箱 · v0.1.0</span>
+  </div>
+  <div class="header-badge">
+    <div class="dot"></div>
+    ONLINE
+  </div>
+</header>
+
+<!-- Main -->
+<main>
+
+  <!-- 图像处理 -->
+  <div class="category-block">
+    <div class="section-header">
+      <span class="section-label">01 / IMAGE</span>
+      <h2 class="section-title">图像处理</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="tools-grid">
+
+      <a class="tool-card" style="--card-accent: #00f5c4" href="tool/cutout.html">
+        <span class="tool-icon">✂️</span>
+        <span class="tool-tag">IMG · CUTOUT</span>
+        <div class="tool-name">像素图抠图</div>
+        <div class="tool-desc">智能识别像素图轮廓，精准去除背景色，保留完整像素细节，输出透明通道图像。</div>
+        <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+      </a>
+
+      <div class="tool-card" style="--card-accent: #ff3c6e" onclick="openModal('像素图转换', '将普通照片或图片转换为像素风格，可自定义像素尺寸、调色板与抖动算法。')">
+        <span class="tool-icon">🎨</span>
+        <span class="tool-tag">IMG · CONVERT</span>
+        <div class="tool-name">像素图转换</div>
+        <div class="tool-desc">将任意图片像素化，支持自定义分辨率、限定调色板颜色数及多种抖动算法。</div>
+        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      </div>
+
+      <div class="tool-card" style="--card-accent: #ffd700" onclick="openModal('调色板提取', '从图片中提取主色调，生成像素艺术风格调色板，支持导出为 GPL / ASE 格式。')">
+        <span class="tool-icon">🎡</span>
+        <span class="tool-tag">IMG · PALETTE</span>
+        <div class="tool-name">调色板提取</div>
+        <div class="tool-desc">自动从图片中聚类提取主色，生成专属调色板，快速用于像素艺术创作。</div>
+        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      </div>
+
+      <div class="tool-card" style="--card-accent: #a78bfa" onclick="openModal('精灵图切割', '上传像素精灵图（Sprite Sheet），自动检测帧边界并切割导出单帧图像。')">
+        <span class="tool-icon">🃏</span>
+        <span class="tool-tag">IMG · SPRITE</span>
+        <div class="tool-name">精灵图切割</div>
+        <div class="tool-desc">自动检测精灵图中的帧间距，批量切割并导出独立帧，支持自定义行列数。</div>
+        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 格式工具 -->
+  <div class="category-block">
+    <div class="section-header">
+      <span class="section-label">02 / FORMAT</span>
+      <h2 class="section-title">格式工具</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="tools-grid">
+
+      <div class="tool-card" style="--card-accent: #38bdf8" onclick="openModal('图片格式转换', '在 PNG / WebP / GIF / BMP 等格式之间互转，支持批量处理与压缩质量调整。')">
+        <span class="tool-icon">🔄</span>
+        <span class="tool-tag">FMT · CONVERT</span>
+        <div class="tool-name">图片格式转换</div>
+        <div class="tool-desc">PNG / WebP / GIF / BMP 格式互转，无损或有损压缩，支持批量拖拽处理。</div>
+        <div class="tool-status status-soon"><div class="status-dot"></div>COMING SOON</div>
+      </div>
+
+      <a class="tool-card" style="--card-accent: #fb923c" href="tool/resizer.html">
+        <span class="tool-icon">🔍</span>
+        <span class="tool-tag">FMT · SCALE</span>
+        <div class="tool-name">像素图缩放</div>
+        <div class="tool-desc">专为像素图设计的无损放大，支持 Nearest-Neighbor、xBR、HQ2x 等高质量算法。</div>
+        <div class="tool-status status-ready"><div class="status-dot"></div>READY</div>
+      </a>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer>
+  <span class="footer-text">© 2026 PIXEL KIT · ALL TOOLS RUNNING IN BROWSER</span>
+  <div class="footer-pixels">
+    <div class="fp" style="background:#00f5c4"></div>
+    <div class="fp" style="background:#ff3c6e"></div>
+    <div class="fp" style="background:#ffd700"></div>
+    <div class="fp" style="background:#a78bfa"></div>
+    <div class="fp" style="background:#38bdf8"></div>
+    <div class="fp" style="background:#fb923c"></div>
+  </div>
+</footer>
+
+<!-- Coming Soon Modal -->
+<div class="coming-soon-overlay" id="modal" onclick="closeModal(event)">
+  <div class="coming-soon-box">
+    <div class="coming-soon-title" id="modal-title">COMING SOON</div>
+    <div class="coming-soon-msg" id="modal-msg">该工具正在开发中，敬请期待。</div>
+    <button class="cs-close" onclick="document.getElementById('modal').classList.remove('open')">[ 关闭 ]</button>
+  </div>
+</div>
+
+<script>
+  function openModal(name, desc) {
+    document.getElementById('modal-title').textContent = name;
+    document.getElementById('modal-msg').textContent = desc;
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal(e) {
+    if (e.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.remove('open');
+    }
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('modal').classList.remove('open');
+  });
+</script>
+</body>
+</html>
