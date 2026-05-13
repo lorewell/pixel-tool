@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>像素大师 - 调色板抠图工具</title>
+    <title>AI像素图片处理</title>
     <style>
         :root {
             --bg: #1e1e2e;
@@ -14,63 +14,203 @@
             --success: #a6e3a1;
         }
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg); color: var(--text); 
-            display: flex; flex-direction: column; align-items: center; padding: 20px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
             margin: 0;
         }
 
-        .container { 
-            background: var(--card); padding: 30px; border-radius: 16px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4); width: 95%; max-width: 1000px; 
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            width: 95%;
+            max-width: 1000px;
         }
 
-        header { border-bottom: 1px solid #444; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .main-layout { display: flex; gap: 30px; flex-wrap: wrap; }
-        
-        /* 画布区域 */
-        .viewport { 
-            flex: 1; min-width: 300px; background: #111; border-radius: 12px;
-            position: relative; display: flex; align-items: center; justify-content: center;
-            min-height: 450px; border: 2px solid #444;
-            /* 透明背景网格 */
+        header {
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .viewport {
+            flex: 1;
+            min-width: 300px;
+            background: #111;
+            border-radius: 12px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            border: 2px solid #444;
             background-image: linear-gradient(45deg, #181818 25%, transparent 25%), linear-gradient(-45deg, #181818 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181818 75%), linear-gradient(-45deg, transparent 75%, #181818 75%);
-            background-size: 16px 16px; background-position: 0 0, 0 8px, 8px 8px, 8px 0;
-        }
-        canvas { image-rendering: pixelated; max-width: 100%; max-height: 70vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-
-        /* 控制面板 */
-        .panel { width: 320px; display: flex; flex-direction: column; gap: 15px; }
-        
-        .palette-container { 
-            background: #181825; border-radius: 8px; padding: 15px; 
-            height: 350px; overflow-y: auto; border: 1px solid #444;
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px 8px, 8px 0;
         }
 
-        .color-row { 
-            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
-            background: #313244; padding: 8px; border-radius: 6px; border: 1px solid transparent;
+        canvas {
+            image-rendering: pixelated;
+            max-width: 100%;
+            max-height: 70vh;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        .color-row:hover { border-color: var(--accent); }
 
-        .swatch { width: 28px; height: 28px; border-radius: 4px; border: 1px solid #000; flex-shrink: 0; }
-        .hex { font-family: monospace; font-size: 13px; flex-grow: 1; }
-        .count { font-size: 11px; color: #9399b2; margin-right: 10px; }
-
-        /* 按钮样式 */
-        .btn { 
-            padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        .panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        .btn-upload { background: var(--accent); color: #1e1e2e; }
-        .btn-download { background: var(--success); color: #1e1e2e; margin-top: 10px; }
-        .btn-remove { background: var(--danger); color: white; padding: 4px 8px; font-size: 11px; }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .btn:active { transform: translateY(0); }
 
-        input[type="file"] { display: none; }
+        .palette-container {
+            background: #181825;
+            border-radius: 8px;
+            padding: 15px;
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid #444;
+        }
+
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            background: #313244;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+
+        .color-row:hover {
+            border-color: var(--accent);
+        }
+
+        .swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 1px solid #000;
+            flex-shrink: 0;
+        }
+
+        .hex {
+            font-family: monospace;
+            font-size: 13px;
+            flex-grow: 1;
+        }
+
+        .count {
+            font-size: 11px;
+            color: #9399b2;
+            margin-right: 10px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-upload {
+            background: var(--accent);
+            color: #1e1e2e;
+        }
+
+        .btn-download {
+            background: var(--success);
+            color: #1e1e2e;
+            margin-top: 10px;
+        }
+
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .control-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-block {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .control-label input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        #merge-btn {
+            background: var(--accent);
+            color: #1e1e2e;
+            display: none;
+            flex: 1;
+        }
+
+        #undo-btn {
+            background: #8b7ba8;
+            color: white;
+            display: none;
+            flex: 0;
+        }
+
+        #download-btn {
+            display: none;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .panel {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -92,8 +232,24 @@
             <div style="font-weight:bold; margin-bottom:5px;">调色板分析 (自动提取)</div>
             <div class="palette-container" id="palette-list">
                 </div>
-            
-            <button id="download-btn" class="btn btn-download" style="display: none;">
+
+            <div class="control-block">
+                <label class="control-label">
+                    相似度范围: <span id="similarity-value">15</span>
+                    <input type="range" id="similarity-slider" min="0" max="50" value="15">
+                </label>
+            </div>
+
+            <div class="control-row">
+                <button id="merge-btn" class="btn">
+                    🎨 合并相似颜色
+                </button>
+                <button id="undo-btn" class="btn" title="撤销上一步操作">
+                    ↶ 撤销
+                </button>
+            </div>
+
+            <button id="download-btn" class="btn btn-download">
                 💾 保存透明 PNG
             </button>
             <p style="font-size: 12px; color: #9399b2; line-height: 1.4;">
@@ -109,11 +265,16 @@
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const paletteList = document.getElementById('palette-list');
     const downloadBtn = document.getElementById('download-btn');
+    const mergeBtn = document.getElementById('merge-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const similaritySlider = document.getElementById('similarity-slider');
+    const similarityValue = document.getElementById('similarity-value');
     const placeholder = document.getElementById('placeholder');
 
     let originalImageData = null;
+    const operationHistory = [];
+    const MAX_HISTORY = 10;
 
-    // 1. 文件上传处理
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -124,11 +285,16 @@
             img.onload = () => {
                 placeholder.style.display = 'none';
                 downloadBtn.style.display = 'inline-flex';
+                mergeBtn.style.display = 'inline-flex';
                 
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
+                
+                operationHistory.length = 0;
+                saveHistory();
+                undoBtn.style.display = 'none';
                 
                 analyzePalette();
             };
@@ -137,14 +303,13 @@
         reader.readAsDataURL(file);
     });
 
-    // 2. 核心算法：分析图片中所有不重复的颜色
     function analyzePalette() {
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imgData.data;
         const colorCounts = {};
 
         for (let i = 0; i < data.length; i += 4) {
-            if (data[i + 3] === 0) continue; // 跳过已经是透明的像素
+            if (data[i + 3] === 0) continue;
             
             const r = data[i];
             const g = data[i+1];
@@ -154,16 +319,31 @@
             colorCounts[rgb] = (colorCounts[rgb] || 0) + 1;
         }
 
-        // 排序并渲染
-        const sortedColors = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+        const sortedColors = Object.entries(colorCounts).sort((a, b) => {
+            const hslA = rgbToHsl(...a[0].split(',').map(Number));
+            const hslB = rgbToHsl(...b[0].split(',').map(Number));
+            
+            const isGrayA = hslA[1] < 10;
+            const isGrayB = hslB[1] < 10;
+            if (isGrayA !== isGrayB) return isGrayA ? 1 : -1;
+            
+            if (isGrayA) {
+                const levelA = Math.round(hslA[2] / 5);
+                const levelB = Math.round(hslB[2] / 5);
+                if (levelA !== levelB) return levelA - levelB;
+                return hslA[2] - hslB[2];
+            }
+            
+            if (hslA[0] !== hslB[0]) return hslA[0] - hslB[0];
+            return hslA[2] - hslB[2];
+        });
         renderPalette(sortedColors);
     }
 
-    // 3. 渲染右侧色板列表
     function renderPalette(colors) {
         paletteList.innerHTML = '';
         if (colors.length === 0) {
-            paletteList.innerHTML = '<p style="color:#555; text-align:center;">暂无颜色数据</p>';
+            paletteList.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:20px;">暂无颜色数据</p>';
             return;
         }
 
@@ -182,7 +362,108 @@
         });
     }
 
-    // 4. 剔除指定颜色（抠图核心逻辑）
+    function saveHistory() {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        operationHistory.push(imgData);
+        if (operationHistory.length > MAX_HISTORY) {
+            operationHistory.shift();
+        }
+        updateUndoBtn();
+    }
+
+    function updateUndoBtn() {
+        if (operationHistory.length > 1) {
+            undoBtn.style.display = 'inline-flex';
+        } else {
+            undoBtn.style.display = 'none';
+        }
+    }
+
+    function undo() {
+        if (operationHistory.length > 1) {
+            operationHistory.pop();
+            const prevState = operationHistory[operationHistory.length - 1];
+            ctx.putImageData(prevState, 0, 0);
+            analyzePalette();
+        }
+    }
+
+    window.mergeColors = function() {
+        const threshold = parseInt(similaritySlider.value);
+        if (threshold === 0) {
+            alert('相似度阈值需要大于 0');
+            return;
+        }
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        const colorCounts = {};
+
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] === 0) continue;
+            const rgb = `${data[i]},${data[i+1]},${data[i+2]}`;
+            colorCounts[rgb] = (colorCounts[rgb] || 0) + 1;
+        }
+
+        const colors = Object.keys(colorCounts).map(rgb => rgb.split(',').map(Number));
+        const colorMap = {};
+
+        const used = new Set();
+        for (let i = 0; i < colors.length; i++) {
+            if (used.has(i)) continue;
+            
+            const mainColor = colors[i];
+            const mainRgb = `${mainColor[0]},${mainColor[1]},${mainColor[2]}`;
+            const group = [i];
+            
+            for (let j = i + 1; j < colors.length; j++) {
+                if (used.has(j)) continue;
+                const otherColor = colors[j];
+                
+                const dist = Math.sqrt(
+                    Math.pow(mainColor[0] - otherColor[0], 2) +
+                    Math.pow(mainColor[1] - otherColor[1], 2) +
+                    Math.pow(mainColor[2] - otherColor[2], 2)
+                );
+                
+                if (dist <= threshold) {
+                    group.push(j);
+                    used.add(j);
+                }
+            }
+            used.add(i);
+
+            let maxCount = 0;
+            let representColor = mainRgb;
+            for (const idx of group) {
+                const colorRgb = `${colors[idx][0]},${colors[idx][1]},${colors[idx][2]}`;
+                if (colorCounts[colorRgb] > maxCount) {
+                    maxCount = colorCounts[colorRgb];
+                    representColor = colorRgb;
+                }
+            }
+
+            for (const idx of group) {
+                const colorRgb = `${colors[idx][0]},${colors[idx][1]},${colors[idx][2]}`;
+                colorMap[colorRgb] = representColor;
+            }
+        }
+
+        for (let i = 0; i < data.length; i += 4) {
+            const rgb = `${data[i]},${data[i+1]},${data[i+2]}`;
+            if (colorMap[rgb]) {
+                const [r, g, b] = colorMap[rgb].split(',').map(Number);
+                data[i] = r;
+                data[i+1] = g;
+                data[i+2] = b;
+            }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        saveHistory();
+        analyzePalette();
+    };
+
     window.removeColor = function(targetRgb) {
         const [tr, tg, tb] = targetRgb.split(',').map(Number);
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -190,25 +471,51 @@
 
         for (let i = 0; i < data.length; i += 4) {
             if (data[i] === tr && data[i+1] === tg && data[i+2] === tb) {
-                data[i + 3] = 0; // 设置透明度为0
+                data[i + 3] = 0;
             }
         }
         
         ctx.putImageData(imgData, 0, 0);
-        analyzePalette(); // 重新分析剩下颜色
+        saveHistory();
+        analyzePalette();
     };
 
-    // 5. 辅助函数：RGB转HEX
-    function rgbToHex(r, g, b) {
-        return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).toUpperCase().join('');
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const l = (max + min) / 2;
+        if (max === min) return [0, 0, Math.round(l * 100)];
+        const d = max - min;
+        const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        let h;
+        if (max === r)      h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2;
+        else                h = (r - g) / d + 4;
+        return [Math.round(h / 6 * 360 / 22.5) * 22, Math.round(s * 100), Math.round(l * 100)];
     }
 
-    // 6. 下载 PNG 功能
+    function rgbToHex(r, g, b) {
+        return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
         link.download = `pixel-cutout-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+    });
+
+    similaritySlider.addEventListener('input', () => {
+        similarityValue.textContent = similaritySlider.value;
+    });
+
+    mergeBtn.addEventListener('click', () => {
+        saveHistory();
+        mergeColors();
+    });
+
+    undoBtn.addEventListener('click', () => {
+        undo();
     });
 </script>
 
